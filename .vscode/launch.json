@@ -18,17 +18,20 @@
         {
             "name": "cogniso_app",
             "request": "launch",
+            "program": "lib/main.dart",
             "type": "dart"
         },
         {
             "name": "cogniso_app (profile mode)",
             "request": "launch",
-            "type": "dart",
+            "type": "dart",  
+            "program": "lib/main.dart",
             "flutterMode": "profile"
         },
         {
             "name": "cogniso_app (release mode)",
             "request": "launch",
+            "program": "lib/main.dart",
             "type": "dart",
             "flutterMode": "release"
         }
