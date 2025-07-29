@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:test_app/feature/contacts/data/models/user_data.dart';
+import 'package:test_app/features/contacts/data/models/user_data.dart';
 
 import '../../../domain/contacts_service.dart';
 import '../../../../../injectable.dart';

@@ -2,8 +2,8 @@ import 'package:test_app/injectable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'feature/contacts/presentations/state/bloc/contacts_bloc.dart';
-import 'feature/contacts/presentations/ui/contacts_screen.dart';
+import 'features/contacts/presentations/state/bloc/contacts_bloc.dart';
+import 'features/contacts/presentations/ui/contacts_screen.dart';
 
 void main() {
   configureDependencies();

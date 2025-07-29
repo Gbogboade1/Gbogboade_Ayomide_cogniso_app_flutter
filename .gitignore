@@ -46,5 +46,7 @@ app.*.map.json
 
 *.freezed.dart
 *.g.dart
+*.mocks.dart
 injectable.config.dart
 /lib/gen/
+/coverage/

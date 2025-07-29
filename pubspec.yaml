@@ -41,6 +41,9 @@ dev_dependencies:
   build_runner: ^2.4.11
   injectable_generator: ^2.6.2
   retrofit_generator: ">=9.0.0 <10.0.0"
+  mockito: ^5.4.5
+  http_mock_adapter: ^0.6.1
+  bloc_test: ^9.1.7
 
 # The following section is specific to Flutter packages.
 flutter:

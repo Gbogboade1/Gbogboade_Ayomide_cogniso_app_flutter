@@ -2,14 +2,9 @@
 
 A new Flutter project.
 
-## Getting Started
 
-To run the web with hot reload support use flutter version 3.32.4
 
-# run web on terminal
-flutter run -d chrome --web-experimental-hot-reload
-
-## Generate auto-generated files
+## Generate auto-generated files before running code
 # With FVM
 fvm dart run build_runner build -d
 
