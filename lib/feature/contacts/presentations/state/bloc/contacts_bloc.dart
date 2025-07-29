@@ -1,8 +1,9 @@
-import 'package:cogniso_app/feature/contacts/domain/contacts_service.dart';
-import 'package:cogniso_app/injectable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:test_app/feature/contacts/data/models/user_data.dart';
 
+import '../../../domain/contacts_service.dart';
+import '../../../../../injectable.dart';
 import '../entities/contacts_model.dart';
 
 part 'contacts_event.dart';
@@ -16,136 +17,64 @@ class ContactsBloc extends Bloc<ContactsEvent, ContactsState> {
       super(const _Initial()) {
     on<ContactsEvent>((event, emit) async {
       await switch (event) {
-        _LoadContacts() => _onLoadContacts(emit),
-        _LoadContactsNextPage() =>
+        _ClearSearchTerm() => _onClearSearchTerm(emit),
+        _LoadContactsPage(:final page) =>
           state.model.searchTerm.trim().isEmpty
-              ? _onLoadContactsNextPage(emit)
-              : _onLoadContactsSearchNextPage,
-        _SearchContacts(:final searchTerm) => _onSearchContacts(
-          emit,
-          searchTerm,
-        ),
+              ? _onLoadContactsNextPage(emit, page)
+              : _onLoadContactsSearchNextPage(emit, page),
+        _SearchContacts(:final searchTerm) => _onSearchContacts(emit, searchTerm),
       };
     });
   }
 
+  _onLoadContactsNextPage(Emitter<ContactsState> emit, int page) async {
+    emit(ContactsState.contactsLoading(state.model.copyWith()));
+    final result = await _contactsService.getContacts(skip: 10 * (page - 1));
+    result.fold(
+      (errorMessage) {
+        emit(ContactsState.contactsLoadingFailed(state.model.copyWith(), errorMessage));
+      },
+      (data) {
+        final contacts = data.users;
+        emit(
+          ContactsState.contactsLoaded(
+            state.model.copyWith(allUsers: [...state.model.allUsers, ...contacts], currentIndex: page),
+          ),
+        );
+      },
+    );
+  }
+
   _onSearchContacts(Emitter<ContactsState> emit, String searchTerm) async {
-    final term = searchTerm.trim().toLowerCase();
-    final filteredContacts =
-        state.model.allUsers
-            .where((contact) => contact.email.toLowerCase().contains(term))
-            .toList();
+    emit(ContactsState.contactsLoading(state.model.copyWith(searchTerm: searchTerm.trim().toLowerCase())));
 
-    emit(
-      ContactsState.contactsLoading(
-        state.model.copyWith(
-          searchResult: filteredContacts,
-          searchTerm: searchTerm.trim(),
-        ),
-      ),
-    );
-
-    final result = await _contactsService.getContacts(
-      skip: state.model.allUsers.length,
-    );
+    final result = await _contactsService.getContacts(skip: state.model.allUsers.length);
     result.fold(
       (errorMessage) {
-        emit(
-          ContactsState.contactsSearchFailed(
-            state.model.copyWith(),
-            errorMessage,
-          ),
-        );
+        emit(ContactsState.contactsSearchFailed(state.model.copyWith(), errorMessage));
       },
       (data) {
         final contacts = data.users;
-        emit(
-          ContactsState.contactsSearchFound(
-            state.model.copyWith(
-              allUsers: [...state.model.allUsers, ...contacts],
-            ),
-          ),
-        );
+        emit(ContactsState.contactsSearchFound(state.model.copyWith(currentSearchIndex: 0), contacts));
       },
     );
   }
 
-  _onLoadContactsNextPage(Emitter<ContactsState> emit) async {
+  _onLoadContactsSearchNextPage(Emitter<ContactsState> emit, int page) async {
     emit(ContactsState.contactsLoading(state.model.copyWith()));
-    final result = await _contactsService.getContacts(
-      skip: state.model.allUsers.length,
-    );
+    final result = await _contactsService.searchContacts(searchTerm: state.model.searchTerm, skip: 10 * (page - 1));
     result.fold(
       (errorMessage) {
-        emit(
-          ContactsState.contactsLoadingFailed(
-            state.model.copyWith(),
-            errorMessage,
-          ),
-        );
+        emit(ContactsState.contactsSearchFailed(state.model.copyWith(), errorMessage));
       },
       (data) {
         final contacts = data.users;
-        emit(
-          ContactsState.contactsLoaded(
-            state.model.copyWith(
-              allUsers: [...state.model.allUsers, ...contacts],
-            ),
-          ),
-        );
+        emit(ContactsState.contactsSearchFoundNextPage(state.model.copyWith(currentSearchIndex: page), contacts));
       },
     );
   }
 
-  _onLoadContactsSearchNextPage(Emitter<ContactsState> emit) async {
-    emit(ContactsState.contactsLoading(state.model.copyWith()));
-    final result = await _contactsService.searchContacts(
-      searchTerm: state.model.searchTerm,
-      skip: state.model.allUsers.length,
-    );
-    result.fold(
-      (errorMessage) {
-        emit(
-          ContactsState.contactsLoadingFailed(
-            state.model.copyWith(),
-            errorMessage,
-          ),
-        );
-      },
-      (data) {
-        final contacts = data.users;
-        emit(
-          ContactsState.contactsSearchFound(
-            state.model.copyWith(
-              searchResult: [...state.model.searchResult, ...contacts],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  _onLoadContacts(Emitter<ContactsState> emit) async {
-    emit(ContactsState.contactsLoading(state.model.copyWith()));
-
-    final result = await _contactsService.getContacts();
-    result.fold(
-      (errorMessage) {
-        emit(
-          ContactsState.contactsLoadingFailed(
-            state.model.copyWith(),
-            errorMessage,
-          ),
-        );
-      },
-      (data) {
-        final contacts = data.users;
-        emit(
-          ContactsState.contactsLoaded(
-            state.model.copyWith(allUsers: contacts),
-          ),
-        );
-      },
-    );
+  _onClearSearchTerm(Emitter<ContactsState> emit) async {
+    emit(ContactsState.searchCleared(state.model.copyWith(searchTerm: '', currentSearchIndex: 1)));
   }
 }

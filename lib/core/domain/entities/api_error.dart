@@ -8,7 +8,6 @@ class ApiError with _$ApiError implements Exception {
   const factory ApiError({
     required int status,
     required String message,
-    required String code,
     List<String>? params,
   }) = _ApiError;
 

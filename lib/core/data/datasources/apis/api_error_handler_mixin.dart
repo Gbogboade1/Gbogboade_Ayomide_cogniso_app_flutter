@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:native_dio_adapter/native_dio_adapter.dart';
 
 import '../../../domain/entities/api_error.dart';
 import '../../../domain/entities/http_error.dart';
-import '../../../domain/exceptions/error_context.dart';
 import '../../models/response.dart' as api;
 
 mixin ApiErrorHandlerMixin {
@@ -15,12 +15,7 @@ mixin ApiErrorHandlerMixin {
       if (response.data != null) {
         return response.data!;
       } else {
-        throw ApiError(
-          status: response.status,
-          message: response.message!,
-          code: response.code!,
-          params: response.params,
-        );
+        throw ApiError(status: response.status, message: response.message!, params: response.params);
       }
     } on DioException catch (err, stackTrace) {
       throw handleDioException(err, stackTrace);
@@ -42,21 +37,20 @@ mixin ApiErrorHandlerMixin {
     } else if (_isHttpErrorResponse(response)) {
       throw HttpError(
         error:
-            (response!.data is String
-                    ? jsonDecode(response.data!.toString())['error']
-                    : response.data.error)
+            (response!.data is String ? jsonDecode(response.data!.toString())['error'] : response.data.error)
                 .toString(),
         status: response.statusCode!,
         description: err.message ?? '',
       );
     }
+    if (response?.data.toString().contains('Server Error') ?? false) {
+      throw const ApiError(status: 500, message: 'Could not reach server, try again later');
+    }
+    if (err.error is NSErrorClientException) {
+      throw const ApiError(status: 500, message: "The Internet connection appears to be offline.");
+    }
 
-    throw ErrorContext.unknown(
-      message:
-          'API invalid response ${err.error}: ${response?.data ?? response}',
-      error: err,
-      stackTrace: stackTrace,
-    );
+    throw ApiError(message: 'API invalid response ${err.error}: ${response?.data ?? response}', status: 500);
   }
 
   bool _isApiErrorResponse(Response<dynamic>? response) {
@@ -64,12 +58,9 @@ mixin ApiErrorHandlerMixin {
       return false;
     }
 
-    final error =
-        (response?.data ?? <String, dynamic>{}) as Map<String, dynamic>;
+    final error = (response?.data ?? <String, dynamic>{}) as Map<String, dynamic>;
 
-    return error.containsKey('status') &&
-        error.containsKey('message') &&
-        error.containsKey('code');
+    return error.containsKey('status') && error.containsKey('message') && error.containsKey('code');
   }
 
   bool _isHttpErrorResponse(Response<dynamic>? response) {

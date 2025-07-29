@@ -10,6 +10,8 @@ class ContactsModel with _$ContactsModel {
     @Default([]) List<UserData> allUsers,
     @Default([]) List<UserData> searchResult,
     @Default('') String searchTerm,
+    @Default(0) int currentIndex,
+    @Default(0) int currentSearchIndex,
   }) = _ContactsModel;
 
   factory ContactsModel.fromJson(Map<String, dynamic> json) =>

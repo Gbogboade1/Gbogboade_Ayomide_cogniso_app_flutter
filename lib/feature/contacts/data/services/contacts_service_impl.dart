@@ -30,7 +30,7 @@ class ContactsServiceImpl extends ContactsService {
       return Right(result);
     } on ApiError catch (e) {
       return Left(e.message);
-    }
+    } 
   }
 
   @override

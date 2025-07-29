@@ -20,5 +20,5 @@ class HttpError with _$HttpError implements Exception {
       _$HttpErrorFromJson(json);
 
   ApiError toApiError() =>
-      ApiError(status: status, message: error, code: description);
+      ApiError(status: status, message: error,);
 }

@@ -1,4 +1,4 @@
-package com.example.cogniso_app
+package com.example.app
 
 import io.flutter.embedding.android.FlutterActivity
 
